@@ -1,3 +1,4 @@
-d = {'city':'Beijing','sex':'male'}
-for k,v in d.items():
-    print(k,':',v)
+def f(x):
+    return x*x
+
+print(sorted([36, 5, -12, 9, -21],key = f))

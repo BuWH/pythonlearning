@@ -9,4 +9,3 @@ def quadratic(a,b,c):
     return x,y
 
 print(quadratic(1,-2,1))
-print("hello")

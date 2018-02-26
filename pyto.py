@@ -1,4 +1,5 @@
-def f(x):
-    return x*x
-
-print(sorted([36, 5, -12, 9, -21],key = f))
+def by_name(t):
+    return t[-1]
+L = [('Bob', 75), ('Adam', 92), ('Bart', 66), ('Lisa', 88)]
+L2 = sorted(L, key=by_name)
+print(L2)

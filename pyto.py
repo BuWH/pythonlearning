@@ -10,3 +10,4 @@ def quadratic(a,b,c):
 
 print(quadratic(1,-2,1))
 print("hello")
+print("useless")

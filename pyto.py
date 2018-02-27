@@ -1,5 +1,19 @@
-def by_name(t):
-    return t[-1]
-L = [('Bob', 75), ('Adam', 92), ('Bart', 66), ('Lisa', 88)]
-L2 = sorted(L, key=by_name)
-print(L2)
+# -*- coding: utf-8 -*-
+import time, functools
+
+
+def log(fn):
+    @functools.wraps(fn)
+    def wrapper(*args,**kw):
+        print('begin call')
+        c=fn(*args,**kw)
+        print('end call')
+        return c
+    print("1")
+    return wrapper
+
+@log
+def printf():
+    print("a")
+
+printf()

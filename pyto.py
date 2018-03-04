@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
-import time, functools
+from enum import Enum, unique
+@unique
+class Gender(Enum):
+    Male = 0
+    Female = 1
 
+class Student(object):
+    def __init__(self, name, gender):
+        self.name = name
+        self.gender = gender
 
-def log(fn):
-    @functools.wraps(fn)
-    def wrapper(*args,**kw):
-        print('begin call')
-        c=fn(*args,**kw)
-        print('end call')
-        return c
-    print("1")
-    return wrapper
-
-@log
-def printf():
-    print("a")
-
-printf()
+bart = Student('Bart', Gender.Male)
+if bart.gender == Gender.Male:
+    print('Success')
+else:
+    print('Failure')

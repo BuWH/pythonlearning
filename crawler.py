@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-  
 
-#以下这段用于避免输出时出现编码错误
+#输出时使用 utf-8 格式
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')

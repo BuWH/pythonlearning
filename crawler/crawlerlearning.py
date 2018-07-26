@@ -27,7 +27,7 @@ class BUPTjwxt:
             'Accept-Encoding': 'gzip, deflate'
           }
 
-    def __jwxtlogin(self):
+    def jwxtlogin(self):
         try:
             with open('yanzhengma.jpeg', 'wb+') as img:
                 img.write(self.__session.get('http://jwxt.bupt.edu.cn/validateCodeAction.do?random=').content)
@@ -47,6 +47,7 @@ class BUPTjwxt:
     def login(self):
         data = self.__session.get(self.__webloginurl, headers=self.__headers)
         soup = BeautifulSoup(data.content, 'html.parser')
+        '''
         if len(soup.find_all(id='v_chart')) != 0:
             print('no yanzhengma')
         else:
@@ -58,6 +59,7 @@ class BUPTjwxt:
 
             os.remove('weblogincaptcha.png')
             self.formdata['captcha'] = captcha1
+            '''
         t = self.__session.post(self.__webloginurl, data=self.formdata, headers=self.__headers)
         code = t.status_code
         data = self.__session.get(self.__jwxtloginurl, data=self.logindata, headers=self.__headers)
@@ -65,11 +67,11 @@ class BUPTjwxt:
         print(soup.title.string)
         if code == 200:
             print('Web Login Success')
-            self.__jwxtlogin()
+            self.jwxtlogin()
         else:
             print('Web Login Error: ' + str(code))
 
-    def get_grades(self):
+    def get_this_semester_grades(self):
         try:
             print('Start Getting Grades...')
             self.__temp__headers = self.__headers
@@ -96,7 +98,45 @@ class BUPTjwxt:
         except Exception as e:
             print('Get Grades Error: ' + str(e))
 
+    def get_all_grades(self):
+        try:
+            print('Start Getting Grades...')
+            self.__temp__headers = self.__headers
+            self.__temp__headers['host'] = 'jwxt.bupt.edu.cn'
+            data = self.__session.get('http://jwxt.bupt.edu.cn/gradeLnAllAction.do?type=ln&oper=sxinfo&lnsxdm=001',
+                                        data=self.logindata, headers=self.__headers)
+            soup = BeautifulSoup(data.content, 'html.parser')
+            tables = soup.find_all('table',{'class': 'titleTop2'})
+
+            with open('grades_all.csv','w+') as f:
+                for th in tables[0].find_all('th'):
+                    if th == tables[0].find_all('th')[len(tables[0].find_all('th'))-1]:
+                        f.write(th.string.strip())
+                    else:
+                        f.write(th.string.strip()+',')
+                f.write('\n')
+                for tab in tables:
+                    for tr in tab.find_all('tr', {'class': 'odd'}):
+                        for td in tr.find_all('td'):
+                            if td == tr.find_all('td')[len(tr.find_all('td')) - 1]:
+                                if td.string is not None:
+                                    f.write(td.string.strip())
+                                else:
+                                    if td.text.strip() != None:
+                                        f.write(td.text.strip())
+                            else:
+                                if td.string is not None:
+                                    f.write(td.string.strip() + ',')
+                                else:
+                                    if td.text.strip() != None:
+                                        f.write(td.text.strip() + ',')
+                        f.write('\n')
+                print('Get Grades Success')
+
+        except Exception as e:
+            print('Get Grades Error: ' + str(e))
+
 if __name__ == "__main__":
     wenhe = BUPTjwxt()
     wenhe.login()
-    wenhe.get_grades()
+    wenhe.get_all_grades()

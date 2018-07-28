@@ -13,11 +13,11 @@ class BUPTjwxt:
         self.__session = requests.session()
         self.formdata['auth_type'] = 'local'
         self.formdata['username'] = '2016211350'  # 外网登陆学号
-        self.formdata['password'] = '060375'  # 外网登陆密码
+        self.formdata['password'] = ''  # 外网登陆密码
         self.formdata['sms_code'] = ''
         self.logindata['type'] = 'sso'
         self.logindata['zjh'] = '2016211350'  # 教务系统登陆学号
-        self.logindata['mm'] = '123456aa'  # 教务系统登陆密码
+        self.logindata['mm'] = ''  # 教务系统登陆密码
         self.__headers = {
             'User-Agent'
                  : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '

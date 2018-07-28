@@ -1,5 +1,5 @@
 # coding: utf-8
-import requests, os
+import requests, os, tables_process, OCR
 from PIL import Image
 from bs4 import BeautifulSoup
 
@@ -20,7 +20,7 @@ class BUPTjwxt:
         self.logindata['mm'] = '123456aa'  # 教务系统登陆密码
         self.__headers = {
             'User-Agent'
-                : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '
+                 : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '
                   'Version/11.1.2 Safari/605.1.15',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.9',
@@ -33,7 +33,7 @@ class BUPTjwxt:
                 img.write(self.__session.get('http://jwxt.bupt.edu.cn/validateCodeAction.do?random=').content)
             pic = Image.open('yanzhengma.jpeg')
             pic.show()
-            yanzhengma = input("Input Captcha: ")  # OCR.OCR_captcha('yanzhengma.jpeg')
+            yanzhengma = input("Input Captcha: ") # OCR.OCR_captcha('yanzhengma.jpeg')
             os.remove('yanzhengma.jpeg')
             self.logindata['v_yzm'] = yanzhengma
             data = self.__session.post('http://jwxt.bupt.edu.cn/jwLoginAction.do',
@@ -45,9 +45,10 @@ class BUPTjwxt:
             print('jwxt Login Error: ' + str(e))
 
     def login(self):
+        '''
+        外网访问界面中有验证码元素，但是正常情况下是隐藏的，如果保证密码是正确的，可以跳过这一部分。
         data = self.__session.get(self.__webloginurl, headers=self.__headers)
         soup = BeautifulSoup(data.content, 'html.parser')
-        '''
         if len(soup.find_all(id='v_chart')) != 0:
             print('no yanzhengma')
         else:
@@ -59,7 +60,7 @@ class BUPTjwxt:
 
             os.remove('weblogincaptcha.png')
             self.formdata['captcha'] = captcha1
-            '''
+        '''
         t = self.__session.post(self.__webloginurl, data=self.formdata, headers=self.__headers)
         code = t.status_code
         data = self.__session.get(self.__jwxtloginurl, data=self.logindata, headers=self.__headers)
@@ -74,8 +75,6 @@ class BUPTjwxt:
     def get_this_semester_grades(self):
         try:
             print('Start Getting Grades...')
-            self.__temp__headers = self.__headers
-            self.__temp__headers['host'] = 'jwxt.bupt.edu.cn'
             data = self.__session.get('http://jwxt.bupt.edu.cn/bxqcjcxAction.do', data=self.logindata, headers=self.__headers)
             soup = BeautifulSoup(data.content, 'html.parser')
             tables = soup.find_all('table',{'class': 'titleTop2'})
@@ -121,22 +120,27 @@ class BUPTjwxt:
                             if td == tr.find_all('td')[len(tr.find_all('td')) - 1]:
                                 if td.string is not None:
                                     f.write(td.string.strip())
-                                else:
-                                    if td.text.strip() != None:
+                                elif td.text.strip() != None:
                                         f.write(td.text.strip())
                             else:
                                 if td.string is not None:
                                     f.write(td.string.strip() + ',')
-                                else:
-                                    if td.text.strip() != None:
-                                        f.write(td.text.strip() + ',')
+                                elif td.text.strip() != None:
+                                    f.write(td.text.strip() + ',')
                         f.write('\n')
-                print('Get Grades Success')
+            self.grades = tables_process.Grades('grades_all.csv')
+            print('Get Grades Success')
 
         except Exception as e:
             print('Get Grades Error: ' + str(e))
+
+    def print_GPA(self):
+        print('必修 GPA: ' + str(self.grades.get_gpa_required()))
+        print('所有 GPA: ' + str(self.grades.get_gpa_all()))
+
 
 if __name__ == "__main__":
     wenhe = BUPTjwxt()
     wenhe.login()
     wenhe.get_all_grades()
+    wenhe.print_GPA()

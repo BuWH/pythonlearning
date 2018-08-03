@@ -14,7 +14,7 @@ class Grades():
         total_credit = 0
         if type == 1:
             for course in self.courses:
-                if course['score'] != '免修' and course['property'] == '必修':
+                if course['score'] != '免修' and course['property'] != '任选' and course['score'] != '通过':
                     # print(course['name_cn'] + ' ' + course['credit'] + ' ' + course['score'])
                     total_credit += float(course['credit'])
                     total_score += float(course['score']) * float(course['credit'])

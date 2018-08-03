@@ -1,7 +1,11 @@
 # coding: utf-8
 import requests, os, tables_process, OCR
+import logging
 from PIL import Image
 from bs4 import BeautifulSoup
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class BUPTjwxt:
@@ -26,6 +30,7 @@ class BUPTjwxt:
             'Accept-Language': 'zh-CN,zh;q=0.9',
             'Accept-Encoding': 'gzip, deflate'
           }
+        logger.info('Finish BUPT jwxt Init')
 
     def jwxtlogin(self):
         try:
@@ -39,10 +44,9 @@ class BUPTjwxt:
             data = self.__session.post('http://jwxt.bupt.edu.cn/jwLoginAction.do',
                                     data=self.logindata, headers=self.__headers)
             soup = BeautifulSoup(data.content, 'html.parser')
-            print(soup.title.string)
-            print('jwxt Login Success')
+            logger.info('jwxt login success: %s'%soup.title.string)
         except Exception as e:
-            print('jwxt Login Error: ' + str(e))
+            logger.warning('jwxt Login Error: ' + str(e))
 
     def login(self):
         '''
@@ -61,22 +65,23 @@ class BUPTjwxt:
             os.remove('weblogincaptcha.png')
             self.formdata['captcha'] = captcha1
         '''
+
         t = self.__session.post(self.__webloginurl, data=self.formdata, headers=self.__headers)
-        code = t.status_code
         data = self.__session.get(self.__jwxtloginurl, data=self.logindata, headers=self.__headers)
         soup = BeautifulSoup(data.content, 'html.parser')
-        print(soup.title.string)
-        if code == 200:
-            print('Web Login Success')
+        logger.info(soup.title.string)
+        if soup.title.string == 'URP 综合教务系统 - 登录':
+            logger.info('web login success')
             self.jwxtlogin()
         else:
-            print('Web Login Error: ' + str(code))
+            logger.warning('Web login error')
 
     def get_this_semester_grades(self):
         try:
-            print('Start Getting Grades...')
+            logger.info('Start Getting Grades...')
             data = self.__session.get('http://jwxt.bupt.edu.cn/bxqcjcxAction.do', data=self.logindata, headers=self.__headers)
             soup = BeautifulSoup(data.content, 'html.parser')
+            logger.info(soup.title.string)
             tables = soup.find_all('table',{'class': 'titleTop2'})
             tab = tables[0]
             with open('grades.csv','w+') as f:
@@ -93,13 +98,13 @@ class BUPTjwxt:
                         else:
                             f.write(td.string.strip() + ',')
                     f.write('\n')
-                print('Get Grades Success')
+                logger.info('Get Grades Success')
         except Exception as e:
-            print('Get Grades Error: ' + str(e))
+            logger.warning('Get Grades Error: ' + str(e))
 
     def get_all_grades(self):
         try:
-            print('Start Getting Grades...')
+            logger.info('Start Getting Grades...')
             self.__temp__headers = self.__headers
             self.__temp__headers['host'] = 'jwxt.bupt.edu.cn'
             data = self.__session.get('http://jwxt.bupt.edu.cn/gradeLnAllAction.do?type=ln&oper=sxinfo&lnsxdm=001',
@@ -128,13 +133,13 @@ class BUPTjwxt:
                                 elif td.text.strip() != None:
                                     f.write(td.text.strip() + ',')
                         f.write('\n')
-            self.grades = tables_process.Grades('grades_all.csv')
-            print('Get Grades Success')
+            logger.info('Get Grades Success')
 
         except Exception as e:
-            print('Get Grades Error: ' + str(e))
+            logger.warning('Get Grades Error: ' + str(e))
 
     def print_GPA(self):
+        self.grades = tables_process.Grades('grades_all.csv')
         print('必修 GPA: ' + str(self.grades.get_gpa_required()))
         print('所有 GPA: ' + str(self.grades.get_gpa_all()))
 
